@@ -1,15 +1,15 @@
 #ifndef SHARED_POINTER_H
 #define SHARED_POINTER_H
 
+#include <iostream>
+#include <cstdio>
+
 template <class T>
 class SharedPointer {
 public:
-
-	//default constructor default initialises the pointer to null
-	explicit SharedPointer();
-
+	
 	//wraps the pointer in the smart pointer
-	explicit SharedPointer(T*);
+	explicit SharedPointer(T* ptr = nullptr);
 
 	//copy constructor and assignment operator
 	explicit SharedPointer(const SharedPointer&);
@@ -31,6 +31,9 @@ public:
 
 	//return bare pointer
 	T* get() const;
+
+	//prints status of this smart pointer to the ostream
+	void printSharedPointer(std::ostream&);
 	
 private:
 	int* reference_count;
@@ -41,11 +44,6 @@ private:
 };
 
 template <class T>
-SharedPointer<T>::SharedPointer()
-	: reference_count(new int(1)),
-		ptr(nullptr) {}
-
-template <class T>
 SharedPointer<T>::SharedPointer(T* ptr)
 	: reference_count(new int(1)),
 		ptr(ptr) {}
@@ -53,7 +51,9 @@ SharedPointer<T>::SharedPointer(T* ptr)
 template <class T>
 SharedPointer<T>::SharedPointer(const SharedPointer& shared_ptr)
 	: reference_count(shared_ptr.reference_count),
-		ptr(shared_ptr.ptr) {}
+		ptr(shared_ptr.ptr) {
+	++(*reference_count);
+}
 
 template <class T>
 SharedPointer<T>& SharedPointer<T>::operator=(const SharedPointer& rhs) {
@@ -84,6 +84,10 @@ void SharedPointer<T>::release() {
 	if (--(*reference_count) == 0) {
 		delete reference_count;
 		delete ptr;
+
+		//FOR DEBUGGING PURPOSES//////
+		std::cout << "memory freed\n";
+		/////////////////////////////
 	}
 
 	//set pointers to null
@@ -115,6 +119,15 @@ void SharedPointer<T>::reset(T* other_ptr) {
 	reference_count = new int(1);
 }
 
+template <class T>
+void SharedPointer<T>::printSharedPointer(std::ostream& os) {
+	os << ((ptr) ? "not null" : "null") << std::endl;
+	os << "reference count: " << *reference_count << std::endl;
+	if (ptr) {
+		os << "content: " << *ptr << std::endl;
+	}
 
+	os << std::endl;
+}
 
 #endif
